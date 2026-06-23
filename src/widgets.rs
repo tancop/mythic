@@ -35,7 +35,7 @@ where
     M: 'static,
 {
     bsn! {
-        label("Open")
+        label(msg)
         Node {
             border: UiRect::all(Val::Px(1.0)),
             padding: UiRect::px(4.0, 4.0, 2.0, 2.0),
