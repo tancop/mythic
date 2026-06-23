@@ -4,12 +4,20 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bevy = { version = "0.19.0", features = ["ui"] }
+anyhow = "1.0.102"
+bevy = { version = "0.19.0", default-features = false, features = ["ui", "system_font_discovery"] }
+chrono = { version = "0.4.45", features = ["serde"] }
 log = { version = "*", features = ["max_level_debug", "release_max_level_warn"] }
+open = "5.3.5"
+reqwest = { version = "0.13.4", features = ["json"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+serde_url_params = "0.2.1"
+url = { version = "2.5.8", features = ["serde"] }
 
 [features]
-default = ["fast_compile"]
-fast_compile = ["bevy/dynamic_linking"]
+default = ["dev"]
+dev = ["bevy/dynamic_linking", "bevy/debug"]
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
