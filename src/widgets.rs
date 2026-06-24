@@ -1,4 +1,9 @@
-use bevy::{ecs::system::IntoObserverSystem, prelude::*, text::FontSourceTemplate};
+use bevy::{
+    animation::animated_field, ecs::system::IntoObserverSystem, prelude::*,
+    text::FontSourceTemplate,
+};
+
+use crate::fx;
 
 pub fn layout() -> impl Scene {
     bsn! {
@@ -34,7 +39,30 @@ where
     B: Bundle,
     M: 'static,
 {
+    let name = Name::new("Button");
+
+    let animations = fx::Library::new()
+        .add(
+            "enter",
+            fx::single(
+                &name,
+                animated_field!(UiTransform::scale),
+                [0.0, 0.2],
+                [1.0, 1.1].map(Vec2::splat),
+            ),
+        )
+        .add(
+            "leave",
+            fx::single(
+                &name,
+                animated_field!(UiTransform::scale),
+                [0.0, 0.3],
+                [1.1, 1.0].map(Vec2::splat),
+            ),
+        );
+
     bsn! {
+        #Button
         label(msg)
         Node {
             border: UiRect::all(Val::Px(1.0)),
@@ -42,18 +70,18 @@ where
         }
         BorderColor::all(Color::BLACK)
         Button
+
+        UiTransform
+        animations // error here
+
         on(on_press)
-        on(|hover: On<Pointer<Enter>>, mut cmd: Commands| {
-            if let Ok(mut cmd) = cmd.get_spawned_entity(hover.entity) {
-                let xform = UiTransform::from_scale(Vec2::splat(1.1));
-                cmd.insert(xform);
-            }
+        on(|event: On<Pointer<Enter>>, mut query: Query<(&mut AnimationPlayer, &fx::Library)>| {
+            let (mut player, library) = query.get_mut(event.entity).unwrap();
+            player.play(library.get_index("enter").unwrap());
         })
-        on(|hover: On<Pointer<Leave>>, mut cmd: Commands| {
-            if let Ok(mut cmd) = cmd.get_spawned_entity(hover.entity) {
-                let xform = UiTransform::from_scale(Vec2::splat(1.0));
-                cmd.insert(xform);
-            }
+        on(|event: On<Pointer<Leave>>, mut query: Query<(&mut AnimationPlayer, &fx::Library)>| {
+            let (mut player, library) = query.get_mut(event.entity).unwrap();
+            player.play(library.get_index("leave").unwrap());
         })
     }
 }
