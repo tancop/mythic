@@ -68,10 +68,9 @@ where
     clip
 }
 
-#[derive(Component)]
-#[require(AnimationPlayer)]
 pub struct Library {
     indexes: HashMap<&'static str, AnimationNodeIndex>,
+    graph_handle: Handle<AnimationGraph>,
 }
 
 impl Library {
@@ -84,6 +83,10 @@ impl Library {
 
     pub fn get_index(&self, name: &'static str) -> Option<AnimationNodeIndex> {
         self.indexes.get(name).copied()
+    }
+
+    pub fn get_graph_handle(&self) -> Handle<AnimationGraph> {
+        self.graph_handle.clone()
     }
 }
 
@@ -100,7 +103,11 @@ impl LibraryBuilder {
         self
     }
 
-    pub fn build(&self, context: &mut TemplateContext) -> Result<Library> {
+    pub fn build(
+        &self,
+        graphs: &mut Assets<AnimationGraph>,
+        clips: &mut Assets<AnimationClip>,
+    ) -> Result<Library> {
         let mut indexes = HashMap::new();
 
         let mut graph = AnimationGraph::default();
@@ -109,18 +116,33 @@ impl LibraryBuilder {
             let name = self.names[i];
             let clip = self.clips[i].clone();
 
-            let clip_handle = context.entity.world_scope(|world| world.add_asset(clip));
+            let clip_handle = clips.add(clip);
 
             let idx = graph.add_clip(clip_handle, 1.0, graph.root);
             indexes.insert(name, idx);
         }
 
-        let graph_handle = context.entity.world_scope(|world| world.add_asset(graph));
-        context.entity.insert(AnimationGraphHandle(graph_handle));
+        let graph_handle = graphs.add(graph);
 
-        context.entity.insert(AnimatedBy(context.entity.id()));
+        Ok(Library {
+            indexes,
+            graph_handle,
+        })
+    }
+}
 
-        Ok(Library { indexes })
+#[derive(Resource, Default)]
+pub struct Libraries {
+    libraries: HashMap<&'static str, Library>,
+}
+
+impl Libraries {
+    pub fn get(&self, key: &'static str) -> Option<&Library> {
+        self.libraries.get(key)
+    }
+
+    pub fn add(&mut self, key: &'static str, lib: Library) {
+        self.libraries.insert(key, lib);
     }
 }
 
@@ -129,4 +151,36 @@ pub fn target(
 ) -> FnTemplate<impl Fn(&mut TemplateContext) -> Result<AnimationTargetId> + Clone, AnimationTargetId>
 {
     template(move |_| Ok(AnimationTargetId::from_name(&name)))
+}
+
+#[derive(Component)]
+pub struct UseLibrary {
+    library_name: &'static str,
+}
+
+impl UseLibrary {
+    pub fn get_name(&self) -> &'static str {
+        self.library_name
+    }
+}
+
+pub fn use_library(
+    library_name: &'static str,
+) -> FnTemplate<impl Fn(&mut TemplateContext) -> Result<UseLibrary> + Clone, UseLibrary> {
+    template(move |ctx| {
+        let Some(handle) = ctx.entity.world_scope(|world| {
+            let assets = world.resource::<Libraries>();
+            assets.get(library_name).map(|it| it.get_graph_handle())
+        }) else {
+            return Err(BevyError::error(format!(
+                "Failed to get library '{}'",
+                library_name
+            )));
+        };
+
+        ctx.entity.insert(AnimatedBy(ctx.entity.id()));
+        ctx.entity.insert(AnimationGraphHandle(handle));
+
+        Ok(UseLibrary { library_name })
+    })
 }

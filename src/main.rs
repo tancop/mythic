@@ -13,8 +13,16 @@ mod login;
 fn main() {
     App::new()
         .insert_resource(WinitSettings::desktop_app())
+        .insert_resource(fx::Libraries::default())
         .add_plugins(DefaultPlugins)
-        .add_systems(Startup, (spawn_camera, login::show_login))
+        .add_systems(
+            Startup,
+            (
+                spawn_camera,
+                login::show_login,
+                widgets::add_button_animations,
+            ),
+        )
         .run();
 }
 

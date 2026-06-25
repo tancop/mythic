@@ -35,15 +35,15 @@ pub fn label(msg: &str) -> impl Scene {
     }
 }
 
-pub fn button<I, B, M>(msg: &str, on_press: I) -> impl Scene
-where
-    I: IntoObserverSystem<Pointer<Press>, B, M> + Send + Sync + Clone,
-    B: Bundle,
-    M: 'static,
-{
+pub fn add_button_animations(
+    mut res: ResMut<fx::Libraries>,
+
+    mut graphs: ResMut<Assets<AnimationGraph>>,
+    mut clips: ResMut<Assets<AnimationClip>>,
+) {
     let btn_name = Name::new("Button");
 
-    let animations = fx::Library::new()
+    let library = fx::Library::new()
         .add(
             "enter",
             fx::single(
@@ -61,7 +61,20 @@ where
                 [0.0, 0.1],
                 [1.1, 1.0].map(Vec2::splat),
             ),
-        );
+        )
+        .build(graphs.as_mut(), clips.as_mut())
+        .unwrap();
+
+    res.add("Button", library);
+}
+
+pub fn button<I, B, M>(msg: &str, on_press: I) -> impl Scene
+where
+    I: IntoObserverSystem<Pointer<Press>, B, M> + Send + Sync + Clone,
+    B: Bundle,
+    M: 'static,
+{
+    let btn_name = Name::new("Button");
 
     bsn! {
         label(msg)
@@ -73,17 +86,21 @@ where
         Button
 
         UiTransform
-        template(move |ctx| animations.build(ctx))
+        fx::use_library("Button")
         fx::target(btn_name)
 
         on(on_press)
-        on(|event: On<Pointer<Enter>>, mut query: Query<(&mut AnimationPlayer, &fx::Library)>| {
+        on(|event: On<Pointer<Enter>>, mut query: Query<(&mut AnimationPlayer, &fx::UseLibrary)>, res: Res<fx::Libraries>| {
             let (mut player, library) = query.get_mut(event.entity).unwrap();
+            let library = res.get(library.get_name()).unwrap();
+
             player.stop_all();
             player.play(library.get_index("enter").unwrap());
         })
-        on(|event: On<Pointer<Leave>>, mut query: Query<(&mut AnimationPlayer, &fx::Library)>| {
+        on(|event: On<Pointer<Leave>>, mut query: Query<(&mut AnimationPlayer, &fx::UseLibrary)>, res: Res<fx::Libraries>| {
             let (mut player, library) = query.get_mut(event.entity).unwrap();
+            let library = res.get(library.get_name()).unwrap();
+
             player.stop_all();
             player.play(library.get_index("leave").unwrap());
         })
