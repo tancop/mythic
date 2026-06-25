@@ -1,6 +1,5 @@
-use bevy::animation::{AnimationClip, AnimationTargetId};
-use bevy::ecs::intern::Interned;
-use bevy::ecs::template::TemplateContext;
+use bevy::animation::{AnimatedBy, AnimationClip, AnimationTargetId};
+use bevy::ecs::template::{FnTemplate, TemplateContext};
 use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 use bevy::reflect::{GetTypeRegistration, Typed};
@@ -76,8 +75,8 @@ pub struct Library {
 }
 
 impl Library {
-    pub fn new() -> LibraryTemplate {
-        LibraryTemplate {
+    pub fn new() -> LibraryBuilder {
+        LibraryBuilder {
             clips: Vec::new(),
             names: Vec::new(),
         }
@@ -89,23 +88,19 @@ impl Library {
 }
 
 #[derive(Clone)]
-pub struct LibraryTemplate {
+pub struct LibraryBuilder {
     names: Vec<&'static str>,
     clips: Vec<AnimationClip>,
 }
 
-impl LibraryTemplate {
+impl LibraryBuilder {
     pub fn add(mut self, name: &'static str, clip: AnimationClip) -> Self {
         self.names.push(name);
         self.clips.push(clip);
         self
     }
-}
 
-impl Template for LibraryTemplate {
-    type Output = Library;
-
-    fn build_template(&self, context: &mut TemplateContext) -> Result<Self::Output> {
+    pub fn build(&self, context: &mut TemplateContext) -> Result<Library> {
         let mut indexes = HashMap::new();
 
         let mut graph = AnimationGraph::default();
@@ -123,10 +118,15 @@ impl Template for LibraryTemplate {
         let graph_handle = context.entity.world_scope(|world| world.add_asset(graph));
         context.entity.insert(AnimationGraphHandle(graph_handle));
 
+        context.entity.insert(AnimatedBy(context.entity.id()));
+
         Ok(Library { indexes })
     }
+}
 
-    fn clone_template(&self) -> Self {
-        self.clone()
-    }
+pub fn target(
+    name: Name,
+) -> FnTemplate<impl Fn(&mut TemplateContext) -> Result<AnimationTargetId> + Clone, AnimationTargetId>
+{
+    template(move |_| Ok(AnimationTargetId::from_name(&name)))
 }

@@ -12,8 +12,8 @@ mod login;
 
 fn main() {
     App::new()
-        .insert_resource(WinitSettings::desktop_app())
-        .add_plugins((DefaultPlugins, AnimationPlugin))
+        // .insert_resource(WinitSettings::desktop_app())
+        .add_plugins(DefaultPlugins)
         .add_systems(Startup, (spawn_camera, login::show_login))
         .run();
 }

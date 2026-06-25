@@ -1,5 +1,7 @@
 use bevy::{
-    animation::animated_field, ecs::system::IntoObserverSystem, prelude::*,
+    animation::{AnimationTargetId, animated_field},
+    ecs::system::IntoObserverSystem,
+    prelude::*,
     text::FontSourceTemplate,
 };
 
@@ -39,30 +41,29 @@ where
     B: Bundle,
     M: 'static,
 {
-    let name = Name::new("Button");
+    let btn_name = Name::new("Button");
 
     let animations = fx::Library::new()
         .add(
             "enter",
             fx::single(
-                &name,
+                &btn_name,
                 animated_field!(UiTransform::scale),
-                [0.0, 0.2],
+                [0.0, 0.05],
                 [1.0, 1.1].map(Vec2::splat),
             ),
         )
         .add(
             "leave",
             fx::single(
-                &name,
+                &btn_name,
                 animated_field!(UiTransform::scale),
-                [0.0, 0.3],
+                [0.0, 0.1],
                 [1.1, 1.0].map(Vec2::splat),
             ),
         );
 
     bsn! {
-        #Button
         label(msg)
         Node {
             border: UiRect::all(Val::Px(1.0)),
@@ -72,15 +73,18 @@ where
         Button
 
         UiTransform
-        animations // error here
+        template(move |ctx| animations.build(ctx))
+        fx::target(btn_name)
 
         on(on_press)
         on(|event: On<Pointer<Enter>>, mut query: Query<(&mut AnimationPlayer, &fx::Library)>| {
             let (mut player, library) = query.get_mut(event.entity).unwrap();
+            player.stop_all();
             player.play(library.get_index("enter").unwrap());
         })
         on(|event: On<Pointer<Leave>>, mut query: Query<(&mut AnimationPlayer, &fx::Library)>| {
             let (mut player, library) = query.get_mut(event.entity).unwrap();
+            player.stop_all();
             player.play(library.get_index("leave").unwrap());
         })
     }
