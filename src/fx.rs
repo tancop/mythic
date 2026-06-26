@@ -1,5 +1,5 @@
 use bevy::animation::{AnimatedBy, AnimationClip, AnimationTargetId};
-use bevy::ecs::template::{FnTemplate, TemplateContext};
+use bevy::ecs::template::{EntityTemplate, FnTemplate, TemplateContext};
 use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 use bevy::reflect::{GetTypeRegistration, Typed};
@@ -68,6 +68,7 @@ where
     clip
 }
 
+#[derive(Default)]
 pub struct Library {
     indexes: HashMap<&'static str, AnimationNodeIndex>,
     graph_handle: Handle<AnimationGraph>,
@@ -131,21 +132,6 @@ impl LibraryBuilder {
     }
 }
 
-#[derive(Resource, Default)]
-pub struct Libraries {
-    libraries: HashMap<&'static str, Library>,
-}
-
-impl Libraries {
-    pub fn get(&self, key: &'static str) -> Option<&Library> {
-        self.libraries.get(key)
-    }
-
-    pub fn add(&mut self, key: &'static str, lib: Library) {
-        self.libraries.insert(key, lib);
-    }
-}
-
 pub fn target(
     name: Name,
 ) -> FnTemplate<impl Fn(&mut TemplateContext) -> Result<AnimationTargetId> + Clone, AnimationTargetId>
@@ -153,34 +139,27 @@ pub fn target(
     template(move |_| Ok(AnimationTargetId::from_name(&name)))
 }
 
-#[derive(Component)]
-pub struct UseLibrary {
-    library_name: &'static str,
+pub trait GetLibrary {
+    fn get_library(&self) -> &Library;
 }
 
-impl UseLibrary {
-    pub fn get_name(&self) -> &'static str {
-        self.library_name
-    }
+pub fn animated_by(
+    tmpl: EntityTemplate,
+) -> FnTemplate<impl Fn(&mut TemplateContext) -> Result<AnimatedBy> + Clone, AnimatedBy> {
+    template(move |ctx| Ok(AnimatedBy(tmpl.build_template(ctx)?)))
 }
 
-pub fn use_library(
-    library_name: &'static str,
-) -> FnTemplate<impl Fn(&mut TemplateContext) -> Result<UseLibrary> + Clone, UseLibrary> {
+pub fn player<R: Resource + GetLibrary>()
+-> FnTemplate<impl Fn(&mut TemplateContext) -> Result<AnimationPlayer> + Clone, AnimationPlayer> {
     template(move |ctx| {
-        let Some(handle) = ctx.entity.world_scope(|world| {
-            let assets = world.resource::<Libraries>();
-            assets.get(library_name).map(|it| it.get_graph_handle())
-        }) else {
-            return Err(BevyError::error(format!(
-                "Failed to get library '{}'",
-                library_name
-            )));
-        };
+        let res = ctx.resource::<R>();
+        let library = res.get_library();
+
+        ctx.entity
+            .insert(AnimationGraphHandle::from(library.graph_handle.clone()));
 
         ctx.entity.insert(AnimatedBy(ctx.entity.id()));
-        ctx.entity.insert(AnimationGraphHandle(handle));
 
-        Ok(UseLibrary { library_name })
+        Ok(AnimationPlayer::default())
     })
 }

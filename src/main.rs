@@ -13,7 +13,7 @@ mod login;
 fn main() {
     App::new()
         .insert_resource(WinitSettings::desktop_app())
-        .insert_resource(fx::Libraries::default())
+        .init_resource::<widgets::ButtonAnim>()
         .add_plugins(DefaultPlugins)
         .add_systems(
             Startup,
