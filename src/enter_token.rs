@@ -1,6 +1,9 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, text::EditableText};
 
-use crate::widgets::{label, layout};
+use crate::{
+    events::EnterPressed,
+    widgets::{label, layout, text_field},
+};
 
 pub fn enter_token_ui() -> impl Scene {
     bsn! {
@@ -8,7 +11,15 @@ pub fn enter_token_ui() -> impl Scene {
 
         Children [
             label("Paste authorizationCode here")
-            Label
+            Label,
+
+            text_field()
+            on(|event: On<EnterPressed>, query: Query<&EditableText>| {
+                match query.get(event.event_target()){
+                    Ok(editor) => log::info!("value: {}", editor.value()),
+                    Err(e) => log::error!("Error getting text editor: {e}"),
+                }
+            })
         ]
     }
 }

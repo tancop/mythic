@@ -1,6 +1,8 @@
 use bevy::{
-    animation::animated_field, ecs::system::IntoObserverSystem, prelude::*,
-    text::FontSourceTemplate,
+    animation::animated_field,
+    ecs::system::IntoObserverSystem,
+    prelude::*,
+    text::{EditableText, FontSourceTemplate},
 };
 
 use crate::fx;
@@ -109,5 +111,22 @@ where
             player.stop_all();
             player.play(res.0.get_index("leave").unwrap());
         })
+    }
+}
+
+pub fn text_field() -> impl Scene {
+    bsn! {
+        TextFont {
+            font: FontSourceTemplate::SystemUi,
+            font_size: px(24),
+        }
+        TextColor(Color::BLACK)
+        Node {
+            border: UiRect::all(Val::Px(1.0)),
+            padding: UiRect::px(4.0, 4.0, 2.0, 2.0),
+            max_width: px(400.0)
+        }
+        BorderColor::all(Color::BLACK)
+        EditableText
     }
 }
