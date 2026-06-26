@@ -3,6 +3,7 @@ use bevy::{ecs::entity::EntityNotSpawnedError, prelude::*};
 
 mod decode;
 mod epic;
+mod events;
 mod fx;
 mod scope;
 mod widgets;
@@ -23,6 +24,7 @@ fn main() {
                 widgets::add_button_animations,
             ),
         )
+        .add_systems(Update, events::on_keyboard_input)
         .run();
 }
 
