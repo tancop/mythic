@@ -77,12 +77,7 @@ pub fn add_button_animations(
     res.0 = library;
 }
 
-pub fn button<I, B, M>(msg: &str, on_press: I) -> impl Scene
-where
-    I: IntoObserverSystem<Pointer<Press>, B, M> + Send + Sync + Clone,
-    B: Bundle,
-    M: 'static,
-{
+pub fn button(msg: &str) -> impl Scene {
     let btn_name = Name::new("Button");
 
     bsn! {
@@ -98,7 +93,6 @@ where
         fx::player::<ButtonAnim>()
         fx::target(btn_name)
 
-        on(on_press)
         on(|event: On<Pointer<Enter>>, mut query: Query<&mut AnimationPlayer>, res: Res<ButtonAnim>| {
             let mut player = query.get_mut(event.entity).unwrap();
 

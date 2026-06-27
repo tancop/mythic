@@ -15,7 +15,8 @@ pub fn login_ui() -> impl Scene {
             label("Log in with Epic Games")
             Label,
 
-            button("Open", |_: On<Pointer<Press>>, mut page: ResMut<CurrentPage>, mut cmd: Commands| {
+            button("Open")
+            on(|_: On<Pointer<Press>>, mut page: ResMut<CurrentPage>, mut cmd: Commands| {
                 if let Err(e) = open::that(epic::get_auth_url()) {
                     log::error!("Error opening auth URL: {e}");
                     return;
