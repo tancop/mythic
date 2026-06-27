@@ -9,12 +9,16 @@ mod scope;
 mod widgets;
 
 mod enter_token;
+mod library;
 mod login;
 
 fn main() {
+    let client = reqwest::Client::new();
+
     App::new()
         .insert_resource(WinitSettings::desktop_app())
         .init_resource::<widgets::ButtonAnim>()
+        .insert_resource(HttpClient(client))
         .add_plugins(DefaultPlugins)
         .add_systems(
             Startup,
@@ -49,3 +53,6 @@ impl CurrentPage {
         })
     }
 }
+
+#[derive(Resource, Deref, DerefMut)]
+struct HttpClient(reqwest::Client);
