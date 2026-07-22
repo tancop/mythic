@@ -36,11 +36,15 @@ pub fn label(msg: &str) -> impl Scene {
 }
 
 #[derive(Resource, Default)]
-pub struct ButtonAnim(fx::Library);
+pub struct ButtonAnim {
+    library: fx::Library,
+    enter: fx::AnimationHandle,
+    leave: fx::AnimationHandle,
+}
 
 impl fx::GetLibrary for ButtonAnim {
     fn get_library(&self) -> &fx::Library {
-        &self.0
+        &self.library
     }
 }
 
@@ -52,29 +56,25 @@ pub fn add_button_animations(
 ) {
     let btn_name = Name::new("Button");
 
-    let library = fx::Library::new()
-        .add(
-            "enter",
-            fx::single(
-                &btn_name,
-                animated_field!(UiTransform::scale),
-                [0.0, 0.05],
-                [1.0, 1.1].map(Vec2::splat),
-            ),
-        )
-        .add(
-            "leave",
-            fx::single(
-                &btn_name,
-                animated_field!(UiTransform::scale),
-                [0.0, 0.1],
-                [1.1, 1.0].map(Vec2::splat),
-            ),
-        )
-        .build(graphs.as_mut(), clips.as_mut())
-        .unwrap();
+    let mut library = fx::Library::new();
 
-    res.0 = library;
+    let enter = library.add(fx::single(
+        &btn_name,
+        animated_field!(UiTransform::scale),
+        [0.0, 0.05],
+        [1.0, 1.1].map(Vec2::splat),
+    ));
+
+    let leave = library.add(fx::single(
+        &btn_name,
+        animated_field!(UiTransform::scale),
+        [0.0, 0.1],
+        [1.1, 1.0].map(Vec2::splat),
+    ));
+
+    res.library = library.build(graphs.as_mut(), clips.as_mut()).unwrap();
+    res.enter = enter;
+    res.leave = leave;
 }
 
 pub fn button(msg: &str) -> impl Scene {
@@ -97,13 +97,13 @@ pub fn button(msg: &str) -> impl Scene {
             let mut player = query.get_mut(event.entity).unwrap();
 
             player.stop_all();
-            player.play(res.0.get_index("enter").unwrap());
+            res.library.play(&mut player, res.enter);
         })
         on(|event: On<Pointer<Leave>>, mut query: Query<&mut AnimationPlayer>, res: Res<ButtonAnim>| {
             let mut player = query.get_mut(event.entity).unwrap();
 
             player.stop_all();
-            player.play(res.0.get_index("leave").unwrap());
+            res.library.play(&mut player, res.leave);
         })
     }
 }

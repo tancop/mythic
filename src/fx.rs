@@ -107,45 +107,64 @@ fn setup(
     let clip: AnimationClip = ...;
     let other_clip: AnimationClip = ...;
 
-    let library = Library::new()
-        .add("first", clip)
-        .add("second", other_clip)
-        .build(graphs.as_mut(), clips.as_mut());
+    let library = Library::new();
 
-    res.library = library;
+    let handle = library.add(clip);
+    let other_handle = library.add(other_clip);
+
+    res.library = library.build(graphs.as_mut(), clips.as_mut());
 }
 ```
 */
 #[derive(Default)]
 pub struct Library {
-    indexes: HashMap<&'static str, AnimationNodeIndex>,
+    indexes: Vec<AnimationNodeIndex>,
     graph_handle: Handle<AnimationGraph>,
 }
 
 impl Library {
     pub fn new() -> LibraryBuilder {
-        LibraryBuilder {
-            clips: Vec::new(),
-            names: Vec::new(),
-        }
+        LibraryBuilder { clips: Vec::new() }
     }
 
-    pub fn get_index(&self, name: &'static str) -> Option<AnimationNodeIndex> {
-        self.indexes.get(name).copied()
+    pub fn get(&self, handle: AnimationHandle) -> Option<AnimationNodeIndex> {
+        if !handle.is_valid() {
+            return None;
+        }
+        self.indexes.get(handle.0).copied()
+    }
+
+    pub fn play(&self, player: &mut AnimationPlayer, handle: AnimationHandle) {
+        if let Some(index) = self.get(handle) {
+            player.play(index);
+        }
     }
 }
 
 #[derive(Clone)]
 pub struct LibraryBuilder {
-    names: Vec<&'static str>,
     clips: Vec<AnimationClip>,
 }
 
+#[derive(Copy, Clone)]
+pub struct AnimationHandle(usize);
+
+impl AnimationHandle {
+    pub fn is_valid(&self) -> bool {
+        self.0 != usize::MAX
+    }
+}
+
+impl Default for AnimationHandle {
+    fn default() -> Self {
+        AnimationHandle(usize::MAX)
+    }
+}
+
 impl LibraryBuilder {
-    pub fn add(mut self, name: &'static str, clip: AnimationClip) -> Self {
-        self.names.push(name);
+    pub fn add(&mut self, clip: AnimationClip) -> AnimationHandle {
         self.clips.push(clip);
-        self
+        AnimationHandle(self.clips.len() - 1)
     }
 
     pub fn build(
@@ -153,18 +172,17 @@ impl LibraryBuilder {
         graphs: &mut Assets<AnimationGraph>,
         clips: &mut Assets<AnimationClip>,
     ) -> Result<Library> {
-        let mut indexes = HashMap::new();
-
         let mut graph = AnimationGraph::default();
 
-        for i in 0..self.names.len() {
-            let name = self.names[i];
+        let mut indexes = Vec::new();
+
+        for i in 0..self.clips.len() {
             let clip = self.clips[i].clone();
 
             let clip_handle = clips.add(clip);
 
             let idx = graph.add_clip(clip_handle, 1.0, graph.root);
-            indexes.insert(name, idx);
+            indexes.push(idx);
         }
 
         let graph_handle = graphs.add(graph);
