@@ -1,8 +1,7 @@
 use bevy::{
     animation::animated_field,
-    ecs::system::IntoObserverSystem,
     prelude::*,
-    text::{EditableText, FontSourceTemplate},
+    text::{EditableText, FontCx, FontSourceTemplate},
 };
 
 use crate::fx;
@@ -28,7 +27,8 @@ pub fn label(msg: &str) -> impl Scene {
     bsn! {
         Text(msg)
         TextFont {
-            font: FontSourceTemplate::SystemUi,
+            font: FontSourceTemplate::SansSerif,
+            weight: FontWeight::MEDIUM,
             font_size: px(24),
         }
         TextColor(Color::BLACK)
@@ -123,4 +123,9 @@ pub fn text_field() -> impl Scene {
         BorderColor::all(Color::BLACK)
         EditableText
     }
+}
+
+pub fn load_fonts(mut font_cx: ResMut<FontCx>, server: Res<AssetServer>) {
+    let _ = server.load::<Font>("assets/Inter.ttf");
+    font_cx.set_sans_serif_family("Inter");
 }
