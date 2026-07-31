@@ -29,6 +29,18 @@ pub fn label(msg: &str) -> impl Scene {
         TextFont {
             font: FontSourceTemplate::SansSerif,
             weight: FontWeight::MEDIUM,
+            font_size: px(16),
+        }
+        TextColor(Color::BLACK)
+    }
+}
+
+pub fn title(msg: &str) -> impl Scene {
+    bsn! {
+        Text(msg)
+        TextFont {
+            font: FontSourceTemplate::SansSerif,
+            weight: FontWeight::BOLD,
             font_size: px(24),
         }
         TextColor(Color::BLACK)
@@ -83,8 +95,8 @@ pub fn button(msg: &str) -> impl Scene {
     bsn! {
         label(msg)
         Node {
-            border: UiRect::all(Val::Px(1.0)),
-            padding: UiRect::px(4.0, 4.0, 2.0, 2.0),
+            border: UiRect::all(Val::Px(2.0)),
+            padding: UiRect::px(8.0, 8.0, 4.0, 4.0),
         }
         BorderColor::all(Color::BLACK)
         Button

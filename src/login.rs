@@ -4,7 +4,7 @@ use crate::{
     CurrentPage,
     enter_token::enter_token_ui,
     epic,
-    widgets::{button, label, layout},
+    widgets::{button, label, layout, title},
 };
 
 pub fn login_ui() -> impl Scene {
@@ -12,7 +12,7 @@ pub fn login_ui() -> impl Scene {
         layout()
 
         Children [
-            label("Log in with Epic Games")
+            title("Log in with Epic Games")
             Label,
 
             button("Open")
