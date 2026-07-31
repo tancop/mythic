@@ -1,7 +1,7 @@
 use bevy::{
     animation::animated_field,
     prelude::*,
-    text::{EditableText, FontCx, FontSourceTemplate},
+    text::{EditableText, FontSourceTemplate},
 };
 
 use crate::{colors, fx};
@@ -27,7 +27,7 @@ pub fn label(msg: &str) -> impl Scene {
     bsn! {
         Text(msg)
         TextFont {
-            font: FontSourceTemplate::SansSerif,
+            font: FontSourceTemplate::Family("Inter"),
             weight: FontWeight::MEDIUM,
             font_size: px(16),
         }
@@ -39,7 +39,7 @@ pub fn title(msg: &str) -> impl Scene {
     bsn! {
         Text(msg)
         TextFont {
-            font: FontSourceTemplate::SansSerif,
+            font: FontSourceTemplate::Family("Inter"),
             weight: FontWeight::BOLD,
             font_size: px(24),
         }
@@ -126,7 +126,7 @@ pub fn button(msg: &str) -> impl Scene {
 pub fn text_field() -> impl Scene {
     bsn! {
         TextFont {
-            font: FontSourceTemplate::SystemUi,
+            font: FontSourceTemplate::Family("Inter"),
             font_size: px(24),
         }
         TextColor(colors::TEXT)
@@ -140,9 +140,13 @@ pub fn text_field() -> impl Scene {
     }
 }
 
-pub fn load_fonts(mut font_cx: ResMut<FontCx>, server: Res<AssetServer>) {
-    let _ = server.load::<Font>("assets/Inter.ttf");
-    font_cx
-        .set_sans_serif_family("Inter")
-        .expect("Failed to load font");
+#[derive(Resource)]
+pub struct Fonts {
+    pub inter: Handle<Font>,
+}
+
+pub fn load_fonts(server: Res<AssetServer>, mut cmd: Commands) {
+    cmd.insert_resource(Fonts {
+        inter: server.load::<Font>("Inter.ttf"),
+    });
 }

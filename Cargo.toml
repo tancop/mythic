@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.102"
 async-compat = "0.2.5"
-bevy = { version = "0.19.0", default-features = false, features = ["ui", "system_font_discovery"] }
+bevy = { version = "0.19.0", default-features = false, features = ["ui"] }
 bevy_clipboard = { version = "0.19.0", features = ["system_clipboard"] }
 chrono = { version = "0.4.45", features = ["serde"] }
 log = { version = "*", features = ["max_level_debug", "release_max_level_warn"] }

@@ -27,9 +27,9 @@ fn main() {
                 spawn_camera,
                 login::show_login,
                 widgets::add_button_animations,
-                widgets::load_fonts,
             ),
         )
+        .add_systems(PostStartup, widgets::load_fonts)
         .add_systems(Update, events::on_keyboard_input)
         .run();
 }
