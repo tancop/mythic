@@ -4,7 +4,7 @@ use bevy::{
     text::{EditableText, FontCx, FontSourceTemplate},
 };
 
-use crate::fx;
+use crate::{colors, fx};
 
 pub fn layout() -> impl Scene {
     bsn! {
@@ -19,7 +19,7 @@ pub fn layout() -> impl Scene {
             flex_direction: FlexDirection::Column,
             row_gap: px(10),
         }
-        BackgroundColor(Color::WHITE)
+        BackgroundColor(colors::BACKGROUND)
     }
 }
 
@@ -31,7 +31,7 @@ pub fn label(msg: &str) -> impl Scene {
             weight: FontWeight::MEDIUM,
             font_size: px(16),
         }
-        TextColor(Color::BLACK)
+        TextColor(colors::TEXT)
     }
 }
 
@@ -43,7 +43,7 @@ pub fn title(msg: &str) -> impl Scene {
             weight: FontWeight::BOLD,
             font_size: px(24),
         }
-        TextColor(Color::BLACK)
+        TextColor(colors::TEXT)
     }
 }
 
@@ -91,14 +91,17 @@ pub fn add_button_animations(
 
 pub fn button(msg: &str) -> impl Scene {
     let btn_name = Name::new("Button");
+    let padding_x = Val::Px(16.0);
+    let padding_y = Val::Px(8.0);
 
     bsn! {
         label(msg)
         Node {
-            border: UiRect::all(Val::Px(2.0)),
-            padding: UiRect::px(8.0, 8.0, 4.0, 4.0),
+            padding: UiRect::new(padding_x, padding_x, padding_y, padding_y),
+            border_radius: BorderRadius::all(Val::Px(4.0)),
         }
-        BorderColor::all(Color::BLACK)
+        BackgroundColor(colors::ALT)
+        TextColor(colors::TEXT)
         Button
 
         UiTransform
@@ -126,18 +129,20 @@ pub fn text_field() -> impl Scene {
             font: FontSourceTemplate::SystemUi,
             font_size: px(24),
         }
-        TextColor(Color::BLACK)
+        TextColor(colors::TEXT)
         Node {
-            border: UiRect::all(Val::Px(1.0)),
             padding: UiRect::px(4.0, 4.0, 2.0, 2.0),
-            max_width: px(400.0)
+            border_radius: BorderRadius::all(Val::Px(4.0)),
+            max_width: px(400.0),
         }
-        BorderColor::all(Color::BLACK)
+        BackgroundColor(colors::ALT)
         EditableText
     }
 }
 
 pub fn load_fonts(mut font_cx: ResMut<FontCx>, server: Res<AssetServer>) {
     let _ = server.load::<Font>("assets/Inter.ttf");
-    font_cx.set_sans_serif_family("Inter");
+    font_cx
+        .set_sans_serif_family("Inter")
+        .expect("Failed to load font");
 }
