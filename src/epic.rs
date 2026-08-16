@@ -63,6 +63,7 @@ struct TokenResponse {
     display_name: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AuthResult {
     pub access_token: String,
     pub refresh_token: String,

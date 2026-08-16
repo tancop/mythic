@@ -9,6 +9,7 @@ async-compat = "0.2.5"
 bevy = { version = "0.19.0", default-features = false, features = ["ui"] }
 bevy_clipboard = { version = "0.19.0", features = ["system_clipboard"] }
 chrono = { version = "0.4.45", features = ["serde"] }
+dirs = "6.0.0"
 log = { version = "*", features = ["max_level_debug", "release_max_level_warn"] }
 open = "5.3.5"
 reqwest = { version = "0.13.4", features = ["json"] }

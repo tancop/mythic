@@ -2,14 +2,11 @@ use async_compat::Compat;
 use bevy::{prelude::*, tasks::IoTaskPool, text::EditableText};
 
 use crate::{
-    CurrentPage, HttpClient, epic,
+    CurrentPage, HttpClient, auth, epic,
     events::EnterPressed,
     library::library_ui,
     widgets::{label, layout, text_field},
 };
-
-#[derive(Resource)]
-struct EpicToken(String);
 
 fn handle_auth(
     event: On<EnterPressed>,
@@ -38,9 +35,9 @@ fn handle_auth(
             };
 
             log::info!("Auth successful");
-            cmd.insert_resource(EpicToken(res.access_token.clone()));
+            cmd.insert_resource(auth::EpicToken(res.access_token.clone()));
 
-            if let Err(e) = page.replace(library_ui(&res.access_token), &mut cmd) {
+            if let Err(e) = page.replace(library_ui(), &mut cmd) {
                 log::error!("Failed to replace page: {e}");
             }
         })

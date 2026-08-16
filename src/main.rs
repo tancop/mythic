@@ -1,6 +1,8 @@
 use bevy::winit::WinitSettings;
 use bevy::{ecs::entity::EntityNotSpawnedError, prelude::*};
 
+mod auth;
+mod cache;
 mod colors;
 mod decode;
 mod epic;

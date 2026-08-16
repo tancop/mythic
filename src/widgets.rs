@@ -1,10 +1,17 @@
 use bevy::{
     animation::animated_field,
+    ecs::template::{FnTemplate, TemplateContext},
     prelude::*,
     text::{EditableText, FontSourceTemplate},
 };
 
 use crate::{colors, fx};
+
+pub fn fetch<Res: FromTemplate, Func: Fn(&mut TemplateContext) -> Res + Clone>(
+    loader: Func,
+) -> FnTemplate<impl Fn(&mut TemplateContext) -> Result<Res> + Clone, Res> {
+    template(move |ctx| Ok(loader(ctx)))
+}
 
 pub fn layout() -> impl Scene {
     bsn! {
@@ -26,6 +33,20 @@ pub fn layout() -> impl Scene {
 pub fn label(msg: &str) -> impl Scene {
     bsn! {
         Text(msg)
+        TextFont {
+            font: FontSourceTemplate::Family("Inter"),
+            weight: FontWeight::MEDIUM,
+            font_size: px(16),
+        }
+        TextColor(colors::TEXT)
+    }
+}
+
+pub fn text<F: Fn(&mut TemplateContext) -> String + Clone + Sync + Send + 'static>(
+    loader: F,
+) -> impl Scene {
+    bsn! {
+        fetch(move |ctx| Text(loader(ctx)))
         TextFont {
             font: FontSourceTemplate::Family("Inter"),
             weight: FontWeight::MEDIUM,
