@@ -1,6 +1,8 @@
 use bevy::winit::WinitSettings;
 use bevy::{ecs::entity::EntityNotSpawnedError, prelude::*};
 
+use crate::library::library_ui;
+
 mod auth;
 mod cache;
 mod colors;
@@ -27,11 +29,11 @@ fn main() {
             Startup,
             (
                 spawn_camera,
-                login::show_login,
                 widgets::add_button_animations,
+                cache::load_cache,
             ),
         )
-        .add_systems(PostStartup, widgets::load_fonts)
+        .add_systems(PostStartup, (widgets::load_fonts, show_first_page))
         .add_systems(Update, events::on_keyboard_input)
         .run();
 }
@@ -60,3 +62,19 @@ impl CurrentPage {
 
 #[derive(Resource, Deref, DerefMut)]
 struct HttpClient(reqwest::Client);
+
+fn show_first_page(world: &mut World) {
+    if let None = world.get_resource::<auth::EpicToken>() {
+        login::show_login(world);
+    } else {
+        match world.spawn_scene(library_ui()) {
+            Ok(entity) => {
+                let page = CurrentPage(entity.id());
+                world.insert_resource(page);
+            }
+            Err(e) => {
+                log::error!("Failed to spawn login page: {e}");
+            }
+        }
+    }
+}
