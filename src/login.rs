@@ -4,7 +4,7 @@ use crate::{
     CurrentPage,
     enter_token::enter_token_ui,
     epic,
-    widgets::{button, label, layout, title},
+    widgets::{button, layout, title},
 };
 
 pub fn login_ui() -> impl Scene {

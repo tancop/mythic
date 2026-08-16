@@ -1,6 +1,5 @@
 use bevy::animation::{AnimatedBy, AnimationClip, AnimationTargetId};
 use bevy::ecs::template::{EntityTemplate, FnTemplate, TemplateContext};
-use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 use bevy::reflect::{GetTypeRegistration, Typed};
 use std::fmt::Debug;
