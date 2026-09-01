@@ -70,14 +70,6 @@ fn show_first_page(world: &mut World) {
     if let None = world.get_resource::<auth::EpicTokens>() {
         login::show_login(world);
     } else {
-        match world.spawn_scene(library_ui()) {
-            Ok(entity) => {
-                let page = CurrentPage(entity.id());
-                world.insert_resource(page);
-            }
-            Err(e) => {
-                log::error!("Failed to spawn login page: {e}");
-            }
-        }
+        library::show_library(world);
     }
 }
