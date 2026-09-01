@@ -7,7 +7,7 @@ use bevy::{
     tasks::IoTaskPool,
 };
 
-use crate::{HttpClient, cache, epic};
+use crate::{HttpClient, cache, epic, login};
 
 #[derive(Resource)]
 pub struct EpicTokens {
@@ -33,7 +33,10 @@ pub fn refresh_token(client: Res<HttpClient>, tokens: Res<EpicTokens>, mut cmd: 
                         log::warn!("Failed to save cache: {e}");
                     }
                 }
-                Err(e) => log::error!("Failed to refresh token: {}", e),
+                Err(e) => {
+                    log::error!("Failed to refresh token: {}", e);
+                    cmd.run_system_cached(login::show_login);
+                }
             }
         });
     });
