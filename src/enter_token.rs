@@ -37,7 +37,10 @@ fn handle_auth(
             };
 
             log::info!("Auth successful");
-            cmd.insert_resource(auth::EpicToken(res.access_token.clone()));
+            cmd.insert_resource(auth::EpicTokens {
+                access_token: res.access_token.clone(),
+                refresh_token: res.refresh_token.clone(),
+            });
 
             let cache = Cache { tokens: Some(res) };
 

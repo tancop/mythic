@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    auth::EpicToken,
+    auth::EpicTokens,
     widgets::{label, layout, text},
 };
 
@@ -12,7 +12,7 @@ pub fn library_ui() -> impl Scene {
         Children [
             label("Your secret token:"),
 
-            text(|ctx| ctx.resource::<EpicToken>().0.clone())
+            text(|ctx| ctx.resource::<EpicTokens>().access_token.clone())
         ]
     }
 }

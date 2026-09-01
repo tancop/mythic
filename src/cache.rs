@@ -44,6 +44,9 @@ pub fn load_cache(mut cmd: Commands) {
     };
 
     if let Some(tokens) = cache.tokens {
-        cmd.insert_resource(auth::EpicToken(tokens.access_token));
+        cmd.insert_resource(auth::EpicTokens {
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+        });
     }
 }

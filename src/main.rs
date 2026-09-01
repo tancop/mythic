@@ -33,7 +33,10 @@ fn main() {
                 cache::load_cache,
             ),
         )
-        .add_systems(PostStartup, (widgets::load_fonts, show_first_page))
+        .add_systems(
+            PostStartup,
+            (widgets::load_fonts, show_first_page, auth::refresh_token),
+        )
         .add_systems(Update, events::on_keyboard_input)
         .run();
 }
@@ -64,7 +67,7 @@ impl CurrentPage {
 struct HttpClient(reqwest::Client);
 
 fn show_first_page(world: &mut World) {
-    if let None = world.get_resource::<auth::EpicToken>() {
+    if let None = world.get_resource::<auth::EpicTokens>() {
         login::show_login(world);
     } else {
         match world.spawn_scene(library_ui()) {
