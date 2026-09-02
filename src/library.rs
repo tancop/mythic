@@ -5,13 +5,17 @@ use crate::{
     CurrentPage, HttpClient,
     auth::EpicTokens,
     epic,
-    widgets::{label, layout, text},
+    events::listen,
+    widgets::{button, layout, text},
 };
 
 #[derive(Resource)]
 pub struct Library {
     pub items: Vec<epic::LibraryItem>,
 }
+
+#[derive(Event)]
+pub struct LibraryUpdated;
 
 pub fn load_library(client: Res<HttpClient>, tokens: Res<EpicTokens>, mut cmd: Commands) {
     IoTaskPool::get().scope(|s| {
@@ -23,6 +27,7 @@ pub fn load_library(client: Res<HttpClient>, tokens: Res<EpicTokens>, mut cmd: C
             match result {
                 Ok(items) => {
                     cmd.insert_resource(Library { items });
+                    cmd.trigger(LibraryUpdated);
                 }
                 Err(e) => {
                     log::error!("Failed to load library: {}", e);
@@ -42,7 +47,19 @@ pub fn library_ui() -> impl Scene {
                     None => "Loading...".to_string(),
                     Some(lib) => format!("{} items in library", lib.items.len()),
                 }
+            })
+            listen(|event: On<LibraryUpdated>, lib: Res<Library>, mut text: Query<&mut Text>| {
+                log::info!("Library updated: {} items", lib.items.len());
+
+                if let Ok(mut text) = text.get_mut(event.observer()) {
+                    text.0 = format!("{} items in library", lib.items.len());
+                }
             }),
+
+            button("Reload")
+            on(|_: On<Pointer<Press>>, mut cmd: Commands| {
+                cmd.run_system_cached(load_library);
+            })
         ]
     }
 }
