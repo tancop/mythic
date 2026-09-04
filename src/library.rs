@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use async_compat::Compat;
 use bevy::{prelude::*, tasks::IoTaskPool};
 
@@ -8,6 +10,8 @@ use crate::{
     events::listen,
     widgets::{button, layout, text},
 };
+
+use async_io::Timer;
 
 #[derive(Resource)]
 pub struct Library {
@@ -31,6 +35,8 @@ pub fn load_library(client: Res<HttpClient>, tokens: Res<EpicTokens>, mut cmd: C
                 }
                 Err(e) => {
                     log::error!("Failed to load library: {}", e);
+                    Timer::after(Duration::from_secs(1)).await;
+                    cmd.run_system_cached(load_library);
                 }
             }
         });
